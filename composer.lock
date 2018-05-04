@@ -1,0 +1,50 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "532964c69526901abb91a541af82066e",
+    "content-hash": "d63eb07e4ccdb81ac48d402da5db4289",
+    "packages": [
+        {
+            "name": "xendit/xendit-php-clients",
+            "version": "1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/xendit/xendit-php-clients.git",
+                "reference": "58f4b62b81fa764689845ca74f262f14d1b45bff"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/xendit/xendit-php-clients/zipball/58f4b62b81fa764689845ca74f262f14d1b45bff",
+                "reference": "58f4b62b81fa764689845ca74f262f14d1b45bff",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "XenditClient\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "description": "PHP clients for xendit api version 2",
+            "homepage": "https://github.com/xendit/xendit-php-clients",
+            "keywords": [
+                "xendit"
+            ],
+            "time": "2017-10-10 05:01:04"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

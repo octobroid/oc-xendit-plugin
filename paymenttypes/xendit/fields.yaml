@@ -1,0 +1,43 @@
+# ===================================
+#  Gateway Field Definitions
+# ===================================
+
+fields:
+    public_key:
+        label: Public Key
+        required: true
+        span: left
+        tab: Configuration
+
+    payment_logo:
+        label: Logo
+        type: mediafinder
+        mode: image
+        span: right
+        tab: Configuration
+
+    secret_key:
+        label: Secret Key
+        required: true
+        span: left
+        tab: Configuration
+
+    validation_token:
+        label: Validation Token
+        required: true
+        span: left
+        tab: Configuration
+
+    invoice_paid_status:
+        label: Invoice paid status
+        comment: Select status to assign the invoice in case of successful payment.
+        tab: Configuration
+        span: left
+        type: dropdown
+
+    invoice_pending_status:
+        label: Invoice pending status
+        comment: Select status to assign the invoice in case of pending payment.
+        tab: Configuration
+        span: right
+        type: dropdown
