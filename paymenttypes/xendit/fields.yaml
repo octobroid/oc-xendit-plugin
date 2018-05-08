@@ -41,3 +41,12 @@ fields:
         tab: Configuration
         span: right
         type: dropdown
+
+    payment_channel:
+        label: Payment channel
+        type: radio
+        span: auto
+        tab: Channels
+        options:
+            credit_card: Credit Card
+            virtual_account: Virtual Account

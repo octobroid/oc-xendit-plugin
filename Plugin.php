@@ -2,6 +2,8 @@
 
 use Backend;
 use System\Classes\PluginBase;
+use RainLab\User\Models\User;
+use Responsiv\Pay\Models\Invoice;
 
 /**
  * Xendit Plugin Information File
@@ -55,7 +57,21 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
+        User::extend(function($model) {
+            $model->hasMany['cc_tokenizations'] = [
+                'Octobro\Xendit\Models\Tokenization'
+            ];
+        });
 
+        Invoice::extend(function($model) {
+            $model->addDynamicMethod('getAvailableBanks', function() use ($model) {
+                $paymentLog = $model->payment_log()->whereMessage('PENDING')->first();
+
+                if (!$paymentLog) return;
+
+                return $paymentLog->response_data['available_banks'];
+            });
+        });
     }
 
     /**
