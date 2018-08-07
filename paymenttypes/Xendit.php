@@ -87,6 +87,13 @@ class Xendit extends GatewayBase
                 throw new ApplicationException(array_get($response, 'message'));
             }
 
+            if (array_get($response, 'status') == 'FAILED') {
+                $message = array_get($response, 'failure_reason');
+                $invoice->logPaymentAttempt($message, 0, null, $response, null);
+
+                throw new ApplicationException($message);
+            }
+
             $paymentMethod = $invoice->getPaymentMethod();
 
             switch ($paymentMethod->payment_channel) {
