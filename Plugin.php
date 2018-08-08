@@ -64,12 +64,12 @@ class Plugin extends PluginBase
         });
 
         Invoice::extend(function($model) {
-            $model->addDynamicMethod('getAvailableBanks', function() use ($model) {
-                $paymentLog = $model->payment_log()->whereMessage('PENDING')->first();
+            $model->addDynamicMethod('getVirtualAccount', function() use ($model) {
+                $paymentLog = $model->payment_log()->whereMessage('PENDING')->orderBy('created_at', 'DESC')->first();
 
                 if (!$paymentLog) return;
 
-                return $paymentLog->response_data['available_banks'];
+                return (object) $paymentLog->response_data;
             });
         });
     }
