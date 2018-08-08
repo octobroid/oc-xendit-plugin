@@ -7,7 +7,7 @@ use Redirect;
 use Exception;
 use ApplicationException;
 use Octobro\Xendit\Models\Tokenization;
-use XenditClient\XenditPHPClient as XenditClient;
+use Octobro\Xendit\Classes\Xendit as XenditClient;
 use Responsiv\Pay\Classes\GatewayBase;
 
 class Xendit extends GatewayBase
@@ -128,13 +128,16 @@ class Xendit extends GatewayBase
     protected function getXenditResponse($data, $host, $invoice)
     {
         $xendit = new XenditClient(['secret_api_key' => $host->secret_key]);
+        $configData = $invoice->getPaymentMethod()->config_data;
 
         if ($invoice->getPaymentMethod()->payment_channel != 'credit_card') {
-            return $xendit->createInvoice(
+            return $xendit->createCallbackVirtualAccount(
                 (string) $invoice->id,
-                $invoice->total,
-                $invoice->email,
-                $invoice->items->first()->description
+                'BNI',
+                $invoice->first_name . ' ' . $invoice->last_name,
+                [
+                    'expiration_date' => $this->getExpiredTime($invoice, $configData)
+                ]
             );
         }
 
@@ -209,5 +212,33 @@ class Xendit extends GatewayBase
     public function isGenuineNotify($response, $invoice)
     {
         return true;
+    }
+
+    /**
+     * Get expired time based on config data
+     *
+     * @param string $time
+     */
+    protected function getExpiredTime($invoice, $configData)
+    {
+        $unit = '';
+
+        switch ($configData['expiry_unit']) {
+            case 'minute':
+                $unit = 'addMinutes';
+                break;
+            case 'day':
+                $unit = 'addDays';
+                break;
+            case 'hour':
+                $unit = 'addHours';
+                break;
+        }
+
+        $duration = is_null($configData['expiry_duration']) ? 1 : $configData['expiry_duration'];
+
+        return $invoice->created_at
+            ->{$unit}($duration)
+            ->format('Y-m-d\TH:i:s\Z');
     }
 }

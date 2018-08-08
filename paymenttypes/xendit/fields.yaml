@@ -22,10 +22,26 @@ fields:
         span: left
         tab: Configuration
 
+    expiry_duration:
+        label: Expiry time (Duration)
+        type: number
+        span: right
+        tab: Configuration
+
     validation_token:
         label: Validation Token
         required: true
         span: left
+        tab: Configuration
+
+    expiry_unit:
+        label: Expiry time (Unit)
+        type: dropdown
+        options:
+            day: Day(s)
+            hour: Hour(s)
+            minute: Minute(s)
+        span: right
         tab: Configuration
 
     invoice_paid_status:
@@ -39,7 +55,7 @@ fields:
         label: Invoice pending status
         comment: Select status to assign the invoice in case of pending payment.
         tab: Configuration
-        span: right
+        span: left
         type: dropdown
 
     payment_channel:
