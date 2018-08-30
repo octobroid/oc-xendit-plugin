@@ -44,6 +44,13 @@ fields:
         span: right
         tab: Configuration
 
+    prefix:
+        label: Prefix
+        type: text
+        comment: Add prefix to customer virtual account name
+        span: auto
+        tab: Configuration
+
     invoice_paid_status:
         label: Invoice paid status
         comment: Select status to assign the invoice in case of successful payment.

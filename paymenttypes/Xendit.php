@@ -129,12 +129,13 @@ class Xendit extends GatewayBase
     {
         $xendit = new XenditClient(['secret_api_key' => $host->secret_key]);
         $configData = $invoice->getPaymentMethod()->config_data;
+        $prefixName = empty($configData['prefix']) ? '' : $configData['prefix'] . ' ';
 
         if ($invoice->getPaymentMethod()->payment_channel != 'credit_card') {
             return $xendit->createCallbackVirtualAccount(
                 (string) $invoice->id,
                 array_get($data, 'bank', 'BNI'),
-                $invoice->first_name . ' ' . $invoice->last_name,
+                $prefixName . $invoice->first_name . ' ' . $invoice->last_name,
                 [
                     'expiration_date' => $this->getExpiredTime($invoice, $configData)
                 ]
