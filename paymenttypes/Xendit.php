@@ -166,7 +166,7 @@ class Xendit extends GatewayBase
     {
         try {
 			$response = Input::all();
-            $amount = $response['paid_amount'];
+            $amount = array_get($response, 'paid_amount', array_get($response, 'amount'));
             $orderId = $response['external_id'];
 
             $invoice = $this->createInvoiceModel()
