@@ -113,9 +113,8 @@ class Xendit extends GatewayBase
                     break;
             }
         } catch (Exception $e) {
-            if (isset($response)) {
-                trace_log($response);
-            }
+            trace_log($e);
+            trace_log($response);
             throw new ApplicationException($e->getMessage());
         }
 
@@ -146,14 +145,19 @@ class Xendit extends GatewayBase
             );
         }
 
-        $tokenization = Auth::getUser()->cc_tokenizations()->firstOrCreate([
-            'token'              => $data['token_id'],
-            'masked_card_number' => $data['masked_card_number'],
-        ]);
+        $token = $data['token_id'];
+
+        // Save cc if user tick to save
+        if (array_get($data, 'save_cc')) {
+            Auth::getUser()->cc_tokenizations()->firstOrCreate([
+                'token'              => $token,
+                'masked_card_number' => $data['masked_card_number'],
+            ]);
+        }
 
         return $xendit->captureCreditCardPayment(
             (string) $invoice->id,
-            $tokenization->token,
+            $token,
             $invoice->total,
             $data
         );
