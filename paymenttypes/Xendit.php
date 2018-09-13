@@ -58,9 +58,10 @@ class Xendit extends GatewayBase
     public function registerAccessPoints()
     {
         return array(
-            'xendit_notify'     => 'processNotify',
-            'xendit_va_is_paid' => 'processVaIsPaid',
-            'xendit_va_status'  => 'processVaStatus'
+            'xendit_notify'          => 'processNotify',
+            'xendit_va_is_paid'      => 'processVaIsPaid',
+            'xendit_va_status'       => 'processVaStatus',
+            'xendit_cc_subscription' => 'processCcSubscription'
         );
     }
 
@@ -237,6 +238,11 @@ class Xendit extends GatewayBase
     }
 
     public function processVaStatus($params)
+    {
+        //Nothing todo for now
+    }
+
+    public function processCcSubscription($params)
     {
         //Nothing todo for now
     }
