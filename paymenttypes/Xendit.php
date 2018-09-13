@@ -59,7 +59,8 @@ class Xendit extends GatewayBase
     {
         return array(
             'xendit_notify'     => 'processNotify',
-            'xendit_va_is_paid' => 'processVaIsPaid'
+            'xendit_va_is_paid' => 'processVaIsPaid',
+            'xendit_va_status'  => 'processVaStatus'
         );
     }
 
@@ -233,6 +234,11 @@ class Xendit extends GatewayBase
             trace_log($response);
             throw new ApplicationException($ex->getMessage());
         }
+    }
+
+    public function processVaStatus($params)
+    {
+        //Nothing todo for now
     }
 
     protected function getInvoice($response)
