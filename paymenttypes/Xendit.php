@@ -3,6 +3,7 @@
 use Auth;
 use Input;
 use Flash;
+use Request;
 use Redirect;
 use Exception;
 use ApplicationException;
@@ -57,7 +58,8 @@ class Xendit extends GatewayBase
     public function registerAccessPoints()
     {
         return array(
-            'xendit_notify' => 'processNotify'
+            'xendit_notify'     => 'processNotify',
+            'xendit_va_is_paid' => 'processVaIsPaid'
         );
     }
 
@@ -210,9 +212,64 @@ class Xendit extends GatewayBase
         }
     }
 
-    public function isGenuineNotify($response, $invoice)
+    public function processVaIsPaid($params)
     {
-        return true;
+        try {
+			$response = Input::all();
+            $invoice = $this->getInvoice($response);
+
+            $this->checkInvoiceGates($invoice);
+
+            if ($invoice->markAsPaymentProcessed()) {
+                $invoice->logPaymentAttempt('Payment completed', 1, null, $response, null);
+                $invoice->updateInvoiceStatus($invoice->getPaymentMethod()->invoice_paid_status);
+            }
+        } catch (Exception $ex) {
+            if (isset($invoice) && $invoice) {
+                $invoice->logPaymentAttempt($ex->getMessage(), 0, null, $response, null);
+            }
+
+            trace_log($ex);
+            trace_log($response);
+            throw new ApplicationException($ex->getMessage());
+        }
+    }
+
+    protected function getInvoice($response)
+    {
+        $amount = array_get($response, 'amount');
+        $orderId = array_get($response, 'external_id');
+
+        return $this->createInvoiceModel()
+            ->whereTotal($amount)
+            ->whereId($orderId)
+            ->first();
+    }
+
+    protected function checkInvoiceGates($invoice)
+    {
+        if (! $invoice) {
+            throw new ApplicationException('Invoice not found');
+        }
+
+        if (! $paymentMethod = $invoice->getPaymentMethod()) {
+            throw new ApplicationException('Payment method not found');
+        }
+
+        if ($paymentMethod->getGatewayClass() != 'Octobro\Xendit\PaymentTypes\Xendit') {
+            throw new ApplicationException('Invalid payment method');
+        }
+
+        if (! $this->isGenuineNotify($paymentMethod)) {
+            throw new ApplicationException('Hacker coming..');
+        }
+    }
+
+    protected function isGenuineNotify($paymentMethod)
+    {
+        $callbackToken = Request::header('X-CALLBACK-TOKEN');
+
+        return $paymentMethod->validation_token == $callbackToken;
     }
 
     /**
