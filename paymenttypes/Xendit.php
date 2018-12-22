@@ -84,6 +84,8 @@ class Xendit extends GatewayBase
      */
     public function processPaymentForm($data, $host, $invoice)
     {
+        $response = null;
+
         try {
             $response = $this->getXenditResponse($data, $host, $invoice);
 
