@@ -141,6 +141,7 @@ class Xendit extends GatewayBase
                 (string) $invoice->id,
                 array_get($data, 'bank', 'BNI'),
                 $prefixName . $invoice->first_name . ' ' . $invoice->last_name,
+                $invoice->total,
                 [
                     'expiration_date' => $this->getExpiredTime($invoice, $configData)
                 ]

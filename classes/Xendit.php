@@ -4,7 +4,7 @@ use XenditClient\XenditPHPClient;
 
 class Xendit extends XenditPHPClient
 {
-    public function createCallbackVirtualAccount ($external_id, $bank_code, $name, $options = []) 
+    public function createCallbackVirtualAccount ($external_id, $bank_code, $name, $amount = null, $options = []) 
     {
         $curl = curl_init();
 
@@ -14,8 +14,14 @@ class Xendit extends XenditPHPClient
         $end_point = $this->server_domain.'/callback_virtual_accounts';
 
         $data['external_id'] = $external_id;
-        $data['bank_code'] = $bank_code;
-        $data['name'] = $name;
+        $data['bank_code']   = $bank_code;
+        $data['name']        = $name;
+
+        if ($amount) {
+            $data['is_closed']       = true;
+            $data['expected_amount'] = $amount;
+        }
+
         $data = array_merge($data, $options);
 
         if (!empty($virtual_account_number)) {
