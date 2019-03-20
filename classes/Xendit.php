@@ -20,6 +20,7 @@ class Xendit extends XenditPHPClient
         if ($amount) {
             $data['is_closed']       = true;
             $data['expected_amount'] = $amount;
+            $data['is_single_use']   = true;
         }
 
         $data = array_merge($data, $options);
