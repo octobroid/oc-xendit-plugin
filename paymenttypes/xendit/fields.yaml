@@ -89,7 +89,9 @@ fields:
     should_send_email:
         label: Send Email to Customer
         type: switch
-        defaul: true
+        default: true
+        span: auto
+        tab: Configuration
         span: auto
         tab: Configuration
 

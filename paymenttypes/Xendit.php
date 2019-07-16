@@ -6,6 +6,7 @@ use Flash;
 use Request;
 use Redirect;
 use Exception;
+use Carbon\Carbon;
 use ApplicationException;
 use Octobro\Xendit\Models\Tokenization;
 use Octobro\Xendit\Classes\Xendit as XenditClient;
@@ -158,7 +159,9 @@ class Xendit extends GatewayBase
 
             $this->checkInvoiceGates($invoice);
 
-			$status = array_get($response, 'status');
+            $status = array_get($response, 'status');
+            
+            $paymentMethod = $invoice->getPaymentMethod();
 
             switch ($status) {
                 case 'PAID':
@@ -247,7 +250,7 @@ class Xendit extends GatewayBase
     {
         $callbackToken = Request::header('X-CALLBACK-TOKEN');
 
-        return $paymentMethod->validation_token == $callbackToken;
+        return $callbackToken == ($paymentMethod->is_production ? $paymentMethod->production_validation_token : $paymentMethod->sandbox_validation_token);
     }
 
     /**
