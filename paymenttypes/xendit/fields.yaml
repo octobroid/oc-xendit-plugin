@@ -92,6 +92,11 @@ fields:
         default: true
         span: auto
         tab: Configuration
+
+    skip_xendit_payment_page:
+        label: Skip Xendit Payment Page
+        type: switch
+        default: false
         span: auto
         tab: Configuration
 

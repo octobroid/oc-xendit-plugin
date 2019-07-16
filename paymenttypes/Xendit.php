@@ -144,10 +144,15 @@ class Xendit extends GatewayBase
             case 'PENDING':
                 $invoice->logPaymentAttempt($status, 0, $options, $response, null);
                 $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
-                return Redirect::to(array_get($response, 'invoice_url'));
+
+                if (!$paymentMethod->skip_xendit_payment_page) {
+                    return Redirect::to(array_get($response, 'invoice_url'));
+                }
             default:
                 $invoice->logPaymentAttempt($status, 0, $options, $response, null);
         }
+
+        return Redirect::to($invoice->getReceiptUrl());
     }
 
     public function processNotify($params)
