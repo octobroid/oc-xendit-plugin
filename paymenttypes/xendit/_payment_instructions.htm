@@ -1,0 +1,35 @@
+{% if data.available_banks|length %}
+<p class="lead">Silakan lakukan transfer ke rekening berikut.</p>
+{% set bankList = {
+    BCA: 'Bank Central Asia',
+    BRI: 'BRI',
+    BNI: 'BNI 46',
+    MANDIRI: 'Bank Mandiri',
+    PERMATA: 'Bank Permata',
+} %}
+
+{% for bank in data.available_banks %}
+<table class="table table-hover table-bordered">
+    <tr>
+        <th>Bank</th>
+        <td>
+            {{ bankList[bank.bank_code] ?: bank.bank_code }}
+        </td>
+    </tr>
+    <tr>
+        <th>No. Rekening</th>
+        <td class="lead text-danger"><strong>{{ bank.bank_account_number }}</strong></td>
+    </tr>
+    <tr>
+        <th>Jumlah Transfer</th>
+        <td class="lead text-success"><strong>Rp {{ bank.transfer_amount|number_format }}</strong></td>
+    </tr>
+    <tr>
+        <th>Nama Rekening</th>
+        <td class="lead"><strong>{{ bank.account_holder_name }}</strong></td>
+    </tr>
+</table>
+{% endfor %}
+{% else %}
+<a href="{{ data.invoice_url }}" target="_blank" class="btn btn-outline-primary">Lanjutkan Pembayaran</a>
+{% endif %}

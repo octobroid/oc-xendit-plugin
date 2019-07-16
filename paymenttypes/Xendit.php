@@ -1,6 +1,7 @@
 <?php namespace Octobro\Xendit\PaymentTypes;
 
 use Auth;
+use Twig;
 use Input;
 use Flash;
 use Request;
@@ -284,5 +285,27 @@ class Xendit extends GatewayBase
         return $invoice->created_at
             ->{$unit}($duration)
             ->format('Y-m-d\TH:i:s\Z');
+    }
+
+    public function getPaymentInstructions($invoice)
+    {
+        $paymentData = $this->getInvoicePaymentData($invoice);
+
+        $partialPath = plugins_path('octobro/xendit/paymenttypes/xendit/_payment_instructions.htm');
+
+        return Twig::parse(file_get_contents($partialPath), ['data' => $paymentData]);
+    }
+
+    protected function getInvoicePaymentData($invoice)
+    {
+        $logs = $invoice->payment_log()->get();
+
+        foreach ($logs as $log) {
+            $data = $log->response_data;
+
+            if (array_get($data, 'status') == 'PENDING') {
+                return $data;
+            }
+        }
     }
 }
