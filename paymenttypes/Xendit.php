@@ -1,11 +1,13 @@
 <?php namespace Octobro\Xendit\PaymentTypes;
 
 use Auth;
+use Twig;
 use Input;
 use Flash;
 use Request;
 use Redirect;
 use Exception;
+use Carbon\Carbon;
 use ApplicationException;
 use Octobro\Xendit\Models\Tokenization;
 use Octobro\Xendit\Classes\Xendit as XenditClient;
@@ -13,6 +15,17 @@ use Responsiv\Pay\Classes\GatewayBase;
 
 class Xendit extends GatewayBase
 {
+    /**
+     * {@inheritDoc}
+     */
+    public function __construct($model = null)
+    {
+        parent::__construct($model);
+
+        if ($this->model) {
+            $this->model->addJsonable(['payment_channels']);
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -31,25 +44,6 @@ class Xendit extends GatewayBase
     public function defineFormFields()
     {
         return 'fields.yaml';
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function defineValidationRules()
-    {
-        return [
-            'public_key'       => 'required',
-            'secret_key'       => 'required',
-            'validation_token' => 'required'
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function initConfigData($host)
-    {
     }
 
     /**
@@ -82,134 +76,107 @@ class Xendit extends GatewayBase
     /**
      * {@inheritDoc}
      */
-    public function processPaymentForm($data, $host, $invoice)
+    public function processPaymentForm($data, $invoice)
     {
-        $response = null;
+        $paymentMethod = $invoice->getPaymentMethod();
 
-        try {
-            $response = $this->getXenditResponse($data, $host, $invoice);
+        // Init Xendit Client
+        $xendit = new XenditClient([
+            'secret_api_key' => $paymentMethod->is_production ? $paymentMethod->production_secret_key : $paymentMethod->sandbox_secret_key,
+        ]);
 
-            if (array_get($response, 'errors') or array_get($response, 'error_code')) {
-                throw new ApplicationException(array_get($response, 'message'));
-            }
+        // Init options
+        $options = [
+            // 'callback_virtual_account_id' => '',
+            // 'invoice_duration' => 60, // in seconds
+            'success_redirect_url' => $invoice->getReceiptUrl(),
+            'failure_redirect_url' => $invoice->getReceiptUrl(),
+        ];
 
-            if (array_get($response, 'status') == 'FAILED') {
-                $message = array_get($response, 'failure_reason');
-                $invoice->logPaymentAttempt($message, 0, null, $response, null);
-
-                throw new ApplicationException($message);
-            }
-
-            $paymentMethod = $invoice->getPaymentMethod();
-
-            switch ($paymentMethod->payment_channel) {
-                case 'credit_card':
-                    if ($invoice->markAsPaymentProcessed()) {
-                        $invoice->logPaymentAttempt($response['status'], 1, null, $response, null);
-                        $invoice->updateInvoiceStatus($paymentMethod->invoice_paid_status);
-                    }
-                    break;
-                case 'virtual_account':
-                    $invoice->logPaymentAttempt($response['status'], 1, [], $response, null);
-                    $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
-                    break;
-            }
-        } catch (Exception $e) {
-            trace_log($e);
-            trace_log($response);
-            throw new ApplicationException($e->getMessage());
+        // Set payment channels
+        if (is_array($paymentMethod->payment_channels) && !empty($paymentMethod->payment_channels)) {
+            $options['payment_methods'] = $paymentMethod->payment_channels;
         }
 
-    }
-
-    /**
-     * Get Xendit response when creating invoice or capture credit card
-     *
-     * @param array $data
-     * @param model $host
-     * @param model $invoice
-     * @return JSON $response
-     */
-    protected function getXenditResponse($data, $host, $invoice)
-    {
-        $xendit = new XenditClient(['secret_api_key' => $host->secret_key]);
-        $configData = $invoice->getPaymentMethod()->config_data;
-        $prefixName = empty($configData['prefix']) ? '' : $configData['prefix'] . ' ';
-
-        if ($invoice->getPaymentMethod()->payment_channel != 'credit_card') {
-            return $xendit->createCallbackVirtualAccount(
-                (string) $invoice->id,
-                array_get($data, 'bank', 'BNI'),
-                $prefixName . $invoice->first_name . ' ' . $invoice->last_name,
-                $invoice->total,
-                [
-                    'expiration_date' => $this->getExpiredTime($invoice, $configData)
-                ]
-            );
+        // Send email configuration
+        if (isset($paymentMethod->should_send_email)) {
+            $options['should_send_email'] = $paymentMethod->should_send_email ? true : false;
         }
 
-        $token = $data['token_id'];
+        // Calculate invoice duration
+        if ($paymentMethod->expiry_unit && $paymentMethod->expiry_duration) {
+            switch ($paymentMethod->expiry_unit) {
+                case 'minute':
+                    $options['invoice_duration'] = $paymentMethod->expiry_duration * 60;
+                    break;
+                case 'hour':
+                    $options['invoice_duration'] = $paymentMethod->expiry_duration * 60 * 60;
+                    break;
+                case 'day':
+                    $options['invoice_duration'] = $paymentMethod->expiry_duration * 60 * 60 * 24;
+                    break;
+            }
+        }
 
-        // Save cc if user tick to save
-        if (array_get($data, 'save_cc')) {
-            Auth::getUser()->cc_tokenizations()->firstOrCreate([
-                'token'              => $token,
-                'masked_card_number' => $data['masked_card_number'],
+        // Create invoice on Xendit
+        $response = $xendit->createInvoice(
+            (string) $invoice->id,
+            $invoice->total,
+            $invoice->email,
+            $invoice->first_name . ' ' . $invoice->last_name,
+            $options
+        );
+
+        // Set invoice due_at
+        if ($options['invoice_duration']) {
+            $invoice->update([
+                'due_at' => Carbon::now()->addSeconds($options['invoice_duration']),
             ]);
         }
 
-        return $xendit->captureCreditCardPayment(
-            (string) $invoice->id,
-            $token,
-            $invoice->total,
-            $data
-        );
-    }
+        // If getting error
+        if (array_get($response, 'error_code')) {
+            $invoice->logPaymentAttempt('error', 0, $options, $response, null);
+            throw new ApplicationException(array_get($response, 'message') ?: 'Something went wrong.');
+        } 
 
-    public function getUserTokenisations()
-    {
-        if ($user = Auth::getUser()) {
-            return $user->cc_tokenizations;
+        // Update the invoice
+        switch ($status = array_get($response, 'status')) {
+            case 'PENDING':
+                $invoice->logPaymentAttempt($status, 0, $options, $response, null);
+                $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
+
+                if (!$paymentMethod->skip_xendit_payment_page) {
+                    return Redirect::to(array_get($response, 'invoice_url'));
+                }
+            default:
+                $invoice->logPaymentAttempt($status, 0, $options, $response, null);
         }
+
+        return Redirect::to($invoice->getReceiptUrl());
     }
 
     public function processNotify($params)
     {
         try {
-			$response = Input::all();
-            $amount = array_get($response, 'paid_amount', array_get($response, 'amount'));
-            $orderId = $response['external_id'];
+            $response = Input::all();
 
-            $invoice = $this->createInvoiceModel()
-                ->whereTotal($amount)
-                ->whereId($orderId)
-                ->first();
+            $invoice = $this->getInvoice($response);
 
-            if (! $invoice) {
-                throw new ApplicationException('Invoice not found');
-            }
+            $this->checkInvoiceGates($invoice);
 
-            if (! $paymentMethod = $invoice->getPaymentMethod()) {
-                throw new ApplicationException('Payment method not found');
-            }
-
-            if ($paymentMethod->getGatewayClass() != 'Octobro\Xendit\PaymentTypes\Xendit') {
-                throw new ApplicationException('Invalid payment method');
-            }
-
-            if (! $this->isGenuineNotify($response, $invoice)) {
-                throw new ApplicationException('Hacker coming..');
-            }
-
-			$status = $response['status'];
-            $statusMessage = 'Payment success';
+            $status = array_get($response, 'status');
+            
+            $paymentMethod = $invoice->getPaymentMethod();
 
             switch ($status) {
                 case 'PAID':
                     if ($invoice->markAsPaymentProcessed()) {
-                        $invoice->logPaymentAttempt($statusMessage, 1, null, $response, null);
+                        $invoice->logPaymentAttempt('Payment success', 1, null, $response, null);
                         $invoice->updateInvoiceStatus($paymentMethod->invoice_paid_status);
                     }
+                    break;
+                case 'EXPIRED':
                     break;
             }
         } catch (Exception $ex) {
@@ -224,7 +191,8 @@ class Xendit extends GatewayBase
     public function processVaIsPaid($params)
     {
         try {
-			$response = Input::all();
+            $response = Input::all();
+
             $invoice = $this->getInvoice($response);
 
             $this->checkInvoiceGates($invoice);
@@ -288,7 +256,7 @@ class Xendit extends GatewayBase
     {
         $callbackToken = Request::header('X-CALLBACK-TOKEN');
 
-        return $paymentMethod->validation_token == $callbackToken;
+        return $callbackToken == ($paymentMethod->is_production ? $paymentMethod->production_validation_token : $paymentMethod->sandbox_validation_token);
     }
 
     /**
@@ -317,5 +285,27 @@ class Xendit extends GatewayBase
         return $invoice->created_at
             ->{$unit}($duration)
             ->format('Y-m-d\TH:i:s\Z');
+    }
+
+    public function getPaymentInstructions($invoice)
+    {
+        $paymentData = $this->getInvoicePaymentData($invoice);
+
+        $partialPath = plugins_path('octobro/xendit/paymenttypes/xendit/_payment_instructions.htm');
+
+        return Twig::parse(file_get_contents($partialPath), ['data' => $paymentData]);
+    }
+
+    protected function getInvoicePaymentData($invoice)
+    {
+        $logs = $invoice->payment_log()->get();
+
+        foreach ($logs as $log) {
+            $data = $log->response_data;
+
+            if (array_get($data, 'status') == 'PENDING') {
+                return $data;
+            }
+        }
     }
 }

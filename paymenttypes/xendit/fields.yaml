@@ -3,34 +3,69 @@
 # ===================================
 
 fields:
-    public_key:
-        label: Public Key
-        required: true
-        span: left
+    is_production:
+        label: Production
+        type: switch
+        default: false
         tab: Configuration
 
-    payment_logo:
-        label: Logo
-        type: mediafinder
-        mode: image
+    sandbox_public_key:
+        label: Sandbox Public Key
+        span: left
+        trigger:
+            action: hide
+            field: is_production
+            condition: checked
+        tab: Configuration
+
+    sandbox_secret_key:
+        label: Sandbox Secret Key
         span: right
+        trigger:
+            action: hide
+            field: is_production
+            condition: checked
+        tab: Configuration
+    
+    sandbox_validation_token:
+        label: Sandbox Validation Token
+        span: left
+        trigger:
+            action: hide
+            field: is_production
+            condition: checked
         tab: Configuration
 
-    secret_key:
-        label: Secret Key
-        required: true
+    production_public_key:
+        label: Production Public Key
         span: left
+        trigger:
+            action: show
+            field: is_production
+            condition: checked
+        tab: Configuration
+
+    production_secret_key:
+        label: Production Secret Key
+        span: right
+        trigger:
+            action: show
+            field: is_production
+            condition: checked
+        tab: Configuration
+    
+    production_validation_token:
+        label: Production Validation Token
+        span: left
+        trigger:
+            action: show
+            field: is_production
+            condition: checked
         tab: Configuration
 
     expiry_duration:
         label: Expiry time (Duration)
         type: number
-        span: right
-        tab: Configuration
-
-    validation_token:
-        label: Validation Token
-        required: true
         span: left
         tab: Configuration
 
@@ -51,10 +86,25 @@ fields:
         span: auto
         tab: Configuration
 
+    should_send_email:
+        label: Send Email to Customer
+        type: switch
+        default: true
+        span: auto
+        tab: Configuration
+
+    skip_xendit_payment_page:
+        label: Skip Xendit Payment Page
+        type: switch
+        default: false
+        span: auto
+        tab: Configuration
+
     invoice_paid_status:
         label: Invoice paid status
         comment: Select status to assign the invoice in case of successful payment.
         tab: Configuration
+        default: paid
         span: left
         type: dropdown
 
@@ -62,14 +112,21 @@ fields:
         label: Invoice pending status
         comment: Select status to assign the invoice in case of pending payment.
         tab: Configuration
+        default: approved
         span: left
         type: dropdown
 
-    payment_channel:
-        label: Payment channel
-        type: radio
-        span: auto
+    payment_channels:
+        label: Payment Channels
+        type: checkboxlist
+        span: full
         tab: Channels
+        commentAbove: Filter payment channel to selected methods. If none are selected the payment gateway will show all payment channels.
         options:
-            credit_card: Credit Card
-            virtual_account: Virtual Account
+            BRI: VA BRI
+            MANDIRI: VA Mandiri
+            BNI: VA BNI
+            PERMATA: VA Permata
+            ALFAMART: Alfamart
+            CREDIT_CARD: Credit Card
+            OVO: OVO
