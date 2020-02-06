@@ -128,9 +128,9 @@ class Xendit extends GatewayBase
         );
 
         // Set invoice due_at
-        if ($options['invoice_duration']) {
+        if (array_get($options, 'invoice_duration')) {
             $invoice->update([
-                'due_at' => Carbon::now()->addSeconds($options['invoice_duration']),
+                'due_at' => Carbon::now()->addSeconds(array_get($options, 'invoice_duration')),
             ]);
         }
 
