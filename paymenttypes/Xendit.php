@@ -85,6 +85,57 @@ class Xendit extends GatewayBase
             'secret_api_key' => $paymentMethod->is_production ? $paymentMethod->production_secret_key : $paymentMethod->sandbox_secret_key,
         ]);
 
+        // Proceed DANA
+        if (in_array('DANA', $paymentMethod->payment_channels)) {
+            $response = $xendit->createEwalletPayment(
+                (string) $invoice->id,
+                'DANA',
+                $invoice->total,
+                [
+                    'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
+                    'redirect_url' => $invoice->getReceiptUrl(),
+                ]
+            );
+
+            if (array_get($response, 'error_code')) {
+                throw new ApplicationException(array_get($response, 'message', 'Something went wrong.'));
+            }
+
+            if ($checkoutUrl = array_get($response, 'checkout_url')) {
+                return Redirect::to($checkoutUrl);
+            }
+        }
+
+        // Proceed LinkAja
+        if (in_array('LINKAJA', $paymentMethod->payment_channels)) {
+            $response = $xendit->createEwalletPayment(
+                (string) $invoice->id,
+                'LINKAJA',
+                $invoice->total,
+                [
+                    'phone' => array_get($data, 'phone'),
+                    'items' => [
+                        [
+                            'id'       => 'pay',
+                            'name'     => 'Payment',
+                            'price'    => $invoice->total,
+                            'quantity' => 1,
+                        ],
+                    ],
+                    'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
+                    'redirect_url' => $invoice->getReceiptUrl(),
+                ]
+            );
+
+            if (array_get($response, 'error_code')) {
+                throw new ApplicationException(array_get($response, 'message', 'Something went wrong.'));
+            }
+
+            if ($checkoutUrl = array_get($response, 'checkout_url')) {
+                return Redirect::to($checkoutUrl);
+            }
+        }
+
         // Init options
         $options = [
             // 'callback_virtual_account_id' => '',
