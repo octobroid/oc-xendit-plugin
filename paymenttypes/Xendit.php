@@ -90,7 +90,7 @@ class Xendit extends GatewayBase
             $response = $xendit->createEwalletPayment(
                 (string) $invoice->id,
                 'DANA',
-                $invoice->total,
+                (int) $invoice->total,
                 [
                     'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
                     'redirect_url' => $invoice->getReceiptUrl(),
@@ -111,7 +111,7 @@ class Xendit extends GatewayBase
             $response = $xendit->createEwalletPayment(
                 (string) $invoice->id,
                 'LINKAJA',
-                $invoice->total,
+                (int) $invoice->total,
                 [
                     'phone' => array_get($data, 'phone'),
                     'items' => [
