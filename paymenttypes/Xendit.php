@@ -102,6 +102,7 @@ class Xendit extends GatewayBase
             }
 
             if ($checkoutUrl = array_get($response, 'checkout_url')) {
+                $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
                 return Redirect::to($checkoutUrl);
             }
         }
@@ -132,6 +133,7 @@ class Xendit extends GatewayBase
             }
 
             if ($checkoutUrl = array_get($response, 'checkout_url')) {
+                $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
                 return Redirect::to($checkoutUrl);
             }
         }
@@ -192,7 +194,9 @@ class Xendit extends GatewayBase
         } 
 
         // Update the invoice
-        switch ($status = array_get($response, 'status')) {
+        $status = array_get($response, 'status') ?: array_get($response, 'payment_status');
+
+        switch ($status) {
             case 'PENDING':
                 $invoice->logPaymentAttempt($status, 0, $options, $response, null);
                 $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
@@ -216,12 +220,13 @@ class Xendit extends GatewayBase
 
             $this->checkInvoiceGates($invoice);
 
-            $status = array_get($response, 'status');
+            $status = array_get($response, 'status') ?: array_get($response, 'payment_status');
             
             $paymentMethod = $invoice->getPaymentMethod();
 
             switch ($status) {
                 case 'PAID':
+                case 'SUCCESS_COMPLETED':
                     if ($invoice->markAsPaymentProcessed()) {
                         $invoice->logPaymentAttempt('Payment success', 1, null, $response, null);
                         $invoice->updateInvoiceStatus($paymentMethod->invoice_paid_status);
@@ -229,6 +234,8 @@ class Xendit extends GatewayBase
                     break;
                 case 'EXPIRED':
                     break;
+                default:
+                    throw new ApplicationException('Status "' . $status . '" not found.');
             }
         } catch (Exception $ex) {
             if (isset($invoice) && $invoice) {
@@ -306,6 +313,14 @@ class Xendit extends GatewayBase
     protected function isGenuineNotify($paymentMethod)
     {
         $callbackToken = Request::header('X-CALLBACK-TOKEN');
+        
+        if (!$callbackToken && is_array(Input::get('callback_authentication_token'))) {
+            $callbackToken = array_get(Input::get('callback_authentication_token'), 'token');
+        }
+
+        if (!$callbackToken && is_string(Input::get('callback_authentication_token'))) {
+            $callbackToken = Input::get('callback_authentication_token');
+        }
 
         return $callbackToken == ($paymentMethod->is_production ? $paymentMethod->production_validation_token : $paymentMethod->sandbox_validation_token);
     }
