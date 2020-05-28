@@ -1,5 +1,5 @@
 {
     "require": {
-        "xendit/xendit-php-clients": "^1.4"
+        "xendit/xendit-php": "2.*"
     }
 }

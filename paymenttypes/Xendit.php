@@ -1,16 +1,12 @@
 <?php namespace Octobro\Xendit\PaymentTypes;
 
-use Auth;
 use Twig;
 use Input;
-use Flash;
 use Request;
 use Redirect;
 use Exception;
 use Carbon\Carbon;
 use ApplicationException;
-use Octobro\Xendit\Models\Tokenization;
-use Octobro\Xendit\Classes\Xendit as XenditClient;
 use Responsiv\Pay\Classes\GatewayBase;
 
 class Xendit extends GatewayBase
@@ -81,21 +77,25 @@ class Xendit extends GatewayBase
         $paymentMethod = $invoice->getPaymentMethod();
 
         // Init Xendit Client
-        $xendit = new XenditClient([
-            'secret_api_key' => $paymentMethod->is_production ? $paymentMethod->production_secret_key : $paymentMethod->sandbox_secret_key,
-        ]);
+        \Xendit\Xendit::setApiKey($paymentMethod->is_production ? $paymentMethod->production_secret_key : $paymentMethod->sandbox_secret_key);
 
-        // Proceed DANA
+        // Init options
+        $options = [
+            'external_id'          => (string) $invoice->id,
+            'amount'               => (int) $invoice->total,
+            'payer_email'          => $invoice->email,
+            'description'          => $invoice->first_name . ' ' . $invoice->last_name,
+        ];
+
+        // Proceed DANA and LinkAja
         if (in_array('DANA', $paymentMethod->payment_channels)) {
-            $response = $xendit->createEwalletPayment(
-                (string) $invoice->id,
-                'DANA',
-                (int) $invoice->total,
-                [
-                    'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
-                    'redirect_url' => $invoice->getReceiptUrl(),
-                ]
-            );
+            $options = array_merge($options, [
+                'ewallet_type' => 'DANA',
+                'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
+                'redirect_url' => $invoice->getReceiptUrl(),
+            ]);
+
+            $response = \Xendit\EWallets::create($options);
 
             if (array_get($response, 'error_code')) {
                 throw new ApplicationException(array_get($response, 'message', 'Something went wrong.'));
@@ -109,24 +109,22 @@ class Xendit extends GatewayBase
 
         // Proceed LinkAja
         if (in_array('LINKAJA', $paymentMethod->payment_channels)) {
-            $response = $xendit->createEwalletPayment(
-                (string) $invoice->id,
-                'LINKAJA',
-                (int) $invoice->total,
-                [
-                    'phone' => array_get($data, 'phone'),
-                    'items' => [
-                        [
-                            'id'       => 'pay',
-                            'name'     => 'Payment',
-                            'price'    => $invoice->total,
-                            'quantity' => 1,
-                        ],
+            $options = array_merge($options, [
+                'ewallet_type' => 'LINKAJA',
+                'phone' => array_get($data, 'phone'),
+                'items' => [
+                    [
+                        'id'       => 'pay',
+                        'name'     => 'Payment',
+                        'price'    => $invoice->total,
+                        'quantity' => 1,
                     ],
-                    'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
-                    'redirect_url' => $invoice->getReceiptUrl(),
-                ]
-            );
+                ],
+                'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
+                'redirect_url' => $invoice->getReceiptUrl(),
+            ]);
+
+            $response = \Xendit\EWallets::create($options);
 
             if (array_get($response, 'error_code')) {
                 throw new ApplicationException(array_get($response, 'message', 'Something went wrong.'));
@@ -138,13 +136,11 @@ class Xendit extends GatewayBase
             }
         }
 
-        // Init options
-        $options = [
-            // 'callback_virtual_account_id' => '',
-            // 'invoice_duration' => 60, // in seconds
+        // Additional options for invoice
+        $options = array_merge($options, [
             'success_redirect_url' => $invoice->getReceiptUrl(),
             'failure_redirect_url' => $invoice->getReceiptUrl(),
-        ];
+        ]);
 
         // Set payment channels
         if (is_array($paymentMethod->payment_channels) && !empty($paymentMethod->payment_channels)) {
@@ -172,13 +168,7 @@ class Xendit extends GatewayBase
         }
 
         // Create invoice on Xendit
-        $response = $xendit->createInvoice(
-            (string) $invoice->id,
-            $invoice->total,
-            $invoice->email,
-            $invoice->first_name . ' ' . $invoice->last_name,
-            $options
-        );
+        $response = \Xendit\Invoice::create($options);
 
         // Set invoice due_at
         if (array_get($options, 'invoice_duration')) {

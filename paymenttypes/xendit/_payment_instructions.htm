@@ -31,5 +31,7 @@
 </table>
 {% endfor %}
 {% else %}
+{% if data.invoice_url %}
 <a href="{{ data.invoice_url }}" target="_blank" class="btn btn-outline-primary">Lanjutkan Pembayaran</a>
+{% endif %}
 {% endif %}
