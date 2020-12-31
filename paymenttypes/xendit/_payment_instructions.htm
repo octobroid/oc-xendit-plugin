@@ -1,5 +1,5 @@
 {% if data.available_banks|length %}
-<p class="lead">Silakan lakukan transfer ke rekening berikut.</p>
+<p class="lead">Silakan lakukan pembayaran virtual account berikut.</p>
 {% set bankList = {
     BCA: 'Bank Central Asia',
     BRI: 'BRI',
@@ -17,18 +17,139 @@
         </td>
     </tr>
     <tr>
-        <th>No. Rekening</th>
+        <th>No. Virtual Account</th>
         <td class="lead text-danger"><strong>{{ bank.bank_account_number }}</strong></td>
     </tr>
     <tr>
-        <th>Jumlah Transfer</th>
-        <td class="lead text-success"><strong>Rp {{ bank.transfer_amount|number_format }}</strong></td>
-    </tr>
-    <tr>
-        <th>Nama Rekening</th>
+        <th>Nama Virtual Account</th>
         <td class="lead"><strong>{{ bank.account_holder_name }}</strong></td>
     </tr>
+    <tr>
+        <th>Nominal Pembayaran</th>
+        <td class="lead text-success"><strong>Rp {{ bank.transfer_amount|number_format }}</strong></td>
+    </tr>
 </table>
+
+{% if bank.bank_code == 'BNI' %}
+<p>
+    <strong>Melalui ATM</strong>
+    <ol>
+        <li>Pada menu utama, pilih <strong>Menu Lainnya</strong>.</li>
+        <li>Pilih <strong>Transfer</strong>.</li>
+        <li>Pilih jenis rekening yang akan Anda gunakan (contoh: "Dari Rekening Tabungan")</li>
+        <li>Pilih <strong>Virtual Account Billing</strong></li>
+        <li>Masukkan Nomor Virtual Account Anda <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Tagihan yang harus dibayarkan akan muncul pada layar konfirmasi.</li>
+        <li>Konfirmasi, apabila telah sesuai, lanjutkan transaksi.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui Internet Banking</strong>
+    <ol>
+        <li>Buka situs <a href="https://ibank.bni.co.id" target="_blank">https://ibank.bni.co.id</a>.</li>
+        <li>Masukkan User ID dan Password.</li>
+        <li>Pilih menu "Transfer".</li>
+        <li>Pilih menu "Virtual Account Billing".</li>
+        <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Lalu pilih rekening debet yang akan digunakan. Kemudian tekan "Lanjut".</li>
+        <li>Tagihan yang harus dibayarkan akan muncul pada layar konfirmasi.</li>
+        <li>Masukkan Kode Otentikasi Token.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui M-Banking</strong>
+    <ol>
+        <li>Akses BNI Mobile Banking melalui handphone.</li>
+        <li>Masukkan User ID dan Password.</li>
+        <li>Pilih menu "Transfer".</li>
+        <li>Pilih menu "Virtual Account Billing", lalu pilih rekening debet.</li>
+        <li>Masukkan Nomor Virtual Account Anda <strong>{{ bank.bank_account_number }}</strong> pada menu "Input Baru".</li>
+        <li>Tagihan yang harus dibayarkan akan muncul pada layar konfirmasi.</li>
+        <li>Konfirmasi transaksi dan masukkan Password Transaksi.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+{% endif %}
+
+{% if bank.bank_code == 'BRI' %}
+<p>
+    <strong>Melalui ATM</strong>
+    <ol>
+        <li>Pada menu utama, pilih "Transaksi Lain" dan pilih "Pembayaran".</li>
+        <li>Pilih menu "Lainnya" dan pilih "Briva".</li>
+        <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong> dan jumlah yang ingin Anda bayarkan.</li>
+        <li>Periksa data transaksi dan tekan "YA".</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui Internet Banking</strong>
+    <ol>
+        <li>Buka situs <a href="https://ib.bri.co.id/ib-bri/" target="_blank">https://ib.bri.co.id/ib-bri/</a> dan masukkan USER ID dan PASSWORD Anda.</li>
+        <li>Pilih "Pembayaran" dan pilih "Briva".</li>
+        <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong> dan jumlah yang ingin Anda bayarkan.</li>
+        <li>Masukkan password Anda kemudian masukkan mToken internet banking.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui M-Banking</strong>
+    <ol>
+        <li>Buka aplikasi BRI Mobile Banking, masukkan USER ID dan PIN Anda.</li>
+        <li>Pilih "Pembayaran" dan pilih "Briva".</li>
+        <li>Masukkan Nomor Virtual Account Anda <strong>{{ bank.bank_account_number }}</strong> dan jumlah yang ingin Anda bayarkan.</li>
+        <li>Masukkan PIN Mobile Banking BRI.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+{% endif %}
+
+{% if bank.bank_code == 'MANDIRI' %}
+<p>
+    <strong>Melalui ATM</strong>
+    <ol>
+        <li>Pada menu utama, pilih "Pembayaran", lalu pilih "Multi Payment".</li>
+        <li>Masukkan kode perusahaan '88908' (88908 XENDIT), lalu tekan 'BENAR'.</li>
+        <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>, lalu tekan 'BENAR'.</li>
+        <li>Masukkan nominal yang ingin di transfer, lalu tekan "BENAR".</li>
+        <li>Informasi pelanggan akan ditampilkan, pilih nomor 1 sesuai dengan nominal pembayaran kemudian tekan "YA".</li>
+        <li>Konfirmasi pembayaran akan muncul, tekan "YES", untuk melanjutkan.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui Internet Banking</strong>
+    <ol>
+        <li>Buka situs Mandiri Internet Banking <a href="https://ibank.bankmandiri.co.id" target="_blank">https://ibank.bankmandiri.co.id</a>.</li>
+        <li>Masuk menggunakan USER ID dan PASSWORD Anda.</li>
+        <li>Buka halaman berAnda, kemudian pilih "Pembayaran".</li>
+        <li>Pilih "Multi Payment".</li>
+        <li>Pilih 88908 XENDIT sebagai penyedia jasa.</li>
+        <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Lalu pilih Lanjut.</li>
+        <li>Apabila semua detail benar tekan "KONFIRMASI".</li>
+        <li>Masukkan PIN / Challenge Code Token.</li>
+        <li>Invoice ini akan diperbarui secara otomatis. Ini bisa memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui M-Banking</strong>
+    <ol>
+        <li>Buka aplikasi Mandiri Online, masukkan USERNAME dan PASSWORD Anda.</li>
+        <li>Pilih "Bayar".</li>
+        <li>Pilih "Multipayment".</li>
+        <li>Pilih 88908 XENDIT sebagai penyedia jasa.</li>
+        <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Tekan Lanjut.</li>
+        <li>Tinjau dan konfirmasi detail transaksi Anda, lalu tekan Konfirmasi.</li>
+        <li>Selesaikan transaksi dengan memasukkan MPIN Anda.</li>
+        <li>Invoice ini akan diperbarui secara otomatis. Ini bisa memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+{% endif %}
+
 {% endfor %}
 {% else %}
 {% if data.invoice_url %}
