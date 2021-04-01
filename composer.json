@@ -1,4 +1,8 @@
 {
+    "name": "octobro/xendit",
+    "description": "Xendit Payment Plugin for OctoberCMS.",
+    "type": "october-plugin",
+    "keywords": ["xendit", "api"],
     "require": {
         "xendit/xendit-php": "2.*"
     }
