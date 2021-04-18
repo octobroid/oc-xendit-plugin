@@ -123,6 +123,7 @@ fields:
         tab: Channels
         commentAbove: Filter payment channel to selected methods. If none are selected the payment gateway will show all payment channels.
         options:
+            BCA: VA BCA
             BRI: VA BRI
             MANDIRI: VA Mandiri
             BNI: VA BNI

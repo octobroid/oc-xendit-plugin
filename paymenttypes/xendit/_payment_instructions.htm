@@ -30,6 +30,43 @@
     </tr>
 </table>
 
+{% if bank.bank_code == 'BCA' %}
+<p>
+    <strong>Melalui ATM BCA</strong>
+    <ol>
+        <li>Pada menu utama, pilih <strong>Transaksi Lainnya</strong>.</li>
+        <li>Pilih <strong>Transfer</strong>.</li>
+        <li>Pilih <strong>Ke Rek BCA Virtual Account</strong>.</li>
+        <li>Masukkan <strong>Nomor Rekening</strong> pembayaran <strong class="text-danger">{{ bank.bank_account_number }}</strong> Anda lalu tekan <strong>Benar</strong>.</li>
+        <li>Pastikan jumlah yang ingin dibayarkan sesuai.</li>
+        <li>Pada halaman konfirmasi transfer akan muncul detail pembayaran Anda. Jika informasi telah sesuai tekan <strong>Ya</strong>.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui Klik BCA</strong>
+    <ol>
+        <li>Pilih menu Transfer Dana.</li>
+        <li>Pilih Transfer ke BCA Virtual Account.</li>
+        <li>Masukkan nomor BCA Virtual Account <strong class="text-danger">{{ bank.bank_account_number }}</strong>, atau pilih Dari Daftar Transfer.</li>
+        <li>Pastikan jumlah yang ingin dibayarkan sesuai.</li>
+        <li>Ambil BCA Token Anda dan masukkan KEYBCA Response APPLI 1 dan Klik Submit.</li>
+        <li>Transaksi Anda selesai.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui m-BCA</strong>
+    <ol>
+        <li>Lakukan log in pada aplikasi BCA Mobile.</li>
+        <li>Pilih menu m-BCA, kemudian masukkan kode akses m-BCA.</li>
+        <li>Pilih m-Transfer > BCA Virtual Account.</li>
+        <li>Masukkan Nomor Virtual Account tujuan <strong class="text-danger">{{ bank.bank_account_number }}</strong>.</li>
+        <li>Pastikan jumlah yang ingin dibayarkan sesuai.</li>
+        <li>Masukkan pin m-BCA.</li>
+        <li>Pembayaran selesai. Simpan notifikasi yang muncul sebagai bukti pembayaran.</li>
+    </ol>
+</p>
+{% endif %}
+
 {% if bank.bank_code == 'BNI' %}
 <p>
     <strong>Melalui ATM</strong>
