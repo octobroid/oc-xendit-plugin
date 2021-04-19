@@ -87,55 +87,6 @@ class Xendit extends GatewayBase
             'description'          => $invoice->first_name . ' ' . $invoice->last_name,
         ];
 
-        // Proceed DANA and LinkAja
-        if (in_array('DANA', $paymentMethod->payment_channels)) {
-            $options = array_merge($options, [
-                'ewallet_type' => 'DANA',
-                'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
-                'redirect_url' => $invoice->getReceiptUrl(),
-            ]);
-
-            $response = \Xendit\EWallets::create($options);
-
-            if (array_get($response, 'error_code')) {
-                throw new ApplicationException(array_get($response, 'message', 'Something went wrong.'));
-            }
-
-            if ($checkoutUrl = array_get($response, 'checkout_url')) {
-                $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
-                return Redirect::to($checkoutUrl);
-            }
-        }
-
-        // Proceed LinkAja
-        if (in_array('LINKAJA', $paymentMethod->payment_channels)) {
-            $options = array_merge($options, [
-                'ewallet_type' => 'LINKAJA',
-                'phone' => array_get($data, 'phone'),
-                'items' => [
-                    [
-                        'id'       => 'pay',
-                        'name'     => 'Payment',
-                        'price'    => $invoice->total,
-                        'quantity' => 1,
-                    ],
-                ],
-                'callback_url' => url('api_responsiv_pay/xendit_notify/params'),
-                'redirect_url' => $invoice->getReceiptUrl(),
-            ]);
-
-            $response = \Xendit\EWallets::create($options);
-
-            if (array_get($response, 'error_code')) {
-                throw new ApplicationException(array_get($response, 'message', 'Something went wrong.'));
-            }
-
-            if ($checkoutUrl = array_get($response, 'checkout_url')) {
-                $invoice->updateInvoiceStatus($paymentMethod->invoice_pending_status);
-                return Redirect::to($checkoutUrl);
-            }
-        }
-
         // Additional options for invoice
         $options = array_merge($options, [
             'success_redirect_url' => $invoice->getReceiptUrl(),
