@@ -6,6 +6,7 @@
     BNI: 'BNI 46',
     MANDIRI: 'Bank Mandiri',
     PERMATA: 'Bank Permata',
+    BSI: 'Bank Syariah Indonesia',
 } %}
 
 {% for bank in data.available_banks %}
@@ -161,7 +162,7 @@
     <ol>
         <li>Buka situs Mandiri Internet Banking <a href="https://ibank.bankmandiri.co.id" target="_blank">https://ibank.bankmandiri.co.id</a>.</li>
         <li>Masuk menggunakan USER ID dan PASSWORD Anda.</li>
-        <li>Buka halaman berAnda, kemudian pilih "Pembayaran".</li>
+        <li>Buka halaman beranda, kemudian pilih "Pembayaran".</li>
         <li>Pilih "Multi Payment".</li>
         <li>Pilih 88908 XENDIT sebagai penyedia jasa.</li>
         <li>Masukkan Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>.</li>
@@ -183,6 +184,67 @@
         <li>Tinjau dan konfirmasi detail transaksi Anda, lalu tekan Konfirmasi.</li>
         <li>Selesaikan transaksi dengan memasukkan MPIN Anda.</li>
         <li>Invoice ini akan diperbarui secara otomatis. Ini bisa memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+{% endif %}
+
+{% if bank.bank_code == 'BSI' %}
+<p>
+    <strong>Melalui ATM</strong>
+    <ol>
+        <li>Pilih menu "Pembayaran/Pembelian".</li>
+        <li>Pilih menu "Institusi".</li>
+        <li>Masukkan kode BSI VA Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Detail yang ditampilkan: NIM, Nama, & Total Tagihan.</li>
+        <li>Konfirmasi detail transaksi anda.</li>
+        <li>Setelah transaksi Anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui Internet Banking</strong>
+    <ol>
+        <li>Buka situs Mandiri Internet Banking <a href="https://bsinet.bankbsi.co.id" target="_blank">https://bsinet.bankbsi.co.id</a>.</li>
+        <li>Masukkan User ID dan Password Anda.</li>
+        <li>Pilih Menu "Pembayaran".</li>
+        <li>Pilih Nomor Rekening BSI Anda.</li>
+        <li>Pilih menu "Institusi".</li>
+        <li>Masukkan nama institusi Xendit (kode 9347).</li>
+        <li>Masukkan Nomor Virtual Account tanpa diikuti kode institusi (tanpa 4 digit pertama) <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Konfirmasi detail transaksi anda.</li>
+        <li>Masukkan otentikasi transaksi/token.</li>
+        <li>Setelah transaksi anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui M-Banking</strong>
+    <ol>
+        <li>Buka aplikasi BSI Mobile, lalu masukkan User ID dan Password Anda.</li>
+
+        <li>Pilih Menu "Pembayaran".</li>
+        <li>Pilih Nomor Rekening BSI Anda.</li>
+        <li>Pilih menu "Institusi".</li>
+        <li>Masukkan nama institusi Xendit (kode 9347).</li>
+        <li>Masukkan Nomor Virtual Account tanpa diikuti kode institusi (tanpa 4 digit pertama) <strong>{{ bank.bank_account_number }}</strong>.</li>
+        <li>Konfirmasi detail transaksi anda.</li>
+        <li>Masukkan otentikasi transaksi/token.</li>
+        <li>Setelah transaksi anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
+    </ol>
+</p>
+<p>
+    <strong>Melalui Interbank</strong>
+    <ol>
+        <li>Buka aplikasi Mobile bank Anda.</li>
+        <li>Masukkan User ID dan Password Anda.</li>
+        <li>Pilih Menu "Transfer".</li>
+        <li>Pilih Menu "Antar Bank".</li>
+        <li>
+            Masukkan BSI VA Code "900" + Nomor Virtual Account <strong>{{ bank.bank_account_number }}</strong>.<br>
+            Catatan: Untuk transfer antar bank via ATM, Anda harus memasukkan Kode Bank BSI "451" sebelum Kode BSI VA "900"
+        </li>
+        <li>Masukkan nominal yang ingin dibayarkan.</li>
+        <li>Pilih tipe rekening.</li>
+        <li>Konfirmasi detail transaksi Anda.</li>
+        <li>Setelah transaksi anda selesai, invoice ini akan diupdate secara otomatis. Proses ini mungkin memakan waktu hingga 5 menit.</li>
     </ol>
 </p>
 {% endif %}
