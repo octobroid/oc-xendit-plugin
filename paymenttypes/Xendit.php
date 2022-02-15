@@ -2,6 +2,7 @@
 
 use Twig;
 use Input;
+use Queue;
 use Request;
 use Redirect;
 use Exception;
@@ -156,28 +157,34 @@ class Xendit extends GatewayBase
     {
         try {
             $response = Input::all();
-
-            $invoice = $this->getInvoice($response);
-
-            $this->checkInvoiceGates($invoice);
-
-            $status = array_get($response, 'status') ?: array_get($response, 'payment_status');
             
-            $paymentMethod = $invoice->getPaymentMethod();
+            $externalId = explode('_', array_get($response, 'external_id'));
+            if ($externalId[0] == 'R002845ZFS') {
+                Queue::push('OnlineTour\Pay\Jobs\GlobaltixPayment@forwardXenditResponse', ['response' => $response]);
+            } else {
+                $invoice = $this->getInvoice($response);
+    
+                $this->checkInvoiceGates($invoice);
+    
+                $status = array_get($response, 'status') ?: array_get($response, 'payment_status');
+                
+                $paymentMethod = $invoice->getPaymentMethod();
+    
+                switch ($status) {
+                    case 'PAID':
+                    case 'SUCCESS_COMPLETED':
+                        if ($invoice->markAsPaymentProcessed()) {
+                            $invoice->logPaymentAttempt('Payment success', 1, null, $response, null);
+                            $invoice->updateInvoiceStatus($paymentMethod->invoice_paid_status);
+                        }
+                        break;
+                    case 'EXPIRED':
+                        break;
+                    default:
+                        throw new ApplicationException('Status "' . $status . '" not found.');
+                }
+            } 
 
-            switch ($status) {
-                case 'PAID':
-                case 'SUCCESS_COMPLETED':
-                    if ($invoice->markAsPaymentProcessed()) {
-                        $invoice->logPaymentAttempt('Payment success', 1, null, $response, null);
-                        $invoice->updateInvoiceStatus($paymentMethod->invoice_paid_status);
-                    }
-                    break;
-                case 'EXPIRED':
-                    break;
-                default:
-                    throw new ApplicationException('Status "' . $status . '" not found.');
-            }
         } catch (Exception $ex) {
             if (isset($invoice) && $invoice) {
                 $invoice->logPaymentAttempt($ex->getMessage(), 0, null, $_POST, null);
