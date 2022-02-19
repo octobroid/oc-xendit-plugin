@@ -159,7 +159,7 @@ class Xendit extends GatewayBase
             $response = Input::all();
             
             $externalId = explode('_', array_get($response, 'external_id'));
-            if ($externalId[0] == 'R002845ZFS' or $externalId[0] == 'R002973ODB') {
+            if ($externalId[0] == env('GLOBALTIX_PAYMENT_CODE')) {
                 Queue::push('OnlineTour\Pay\Jobs\GlobaltixPayment@forwardXenditResponse', ['response' => $response]);
             } else {
                 $invoice = $this->getInvoice($response);
