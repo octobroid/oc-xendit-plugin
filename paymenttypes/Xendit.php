@@ -119,6 +119,15 @@ class Xendit extends GatewayBase
             }
         }
 
+        // Check if due_at shorter than default invoice_duration
+        if ($invoice->due_at) {
+            $invoiceDueAtDiff = Carbon::now()->diffInSeconds($invoice->due_at);
+
+            if (!array_get($options, 'invoice_duration') || $invoiceDueAtDiff < array_get($options, 'invoice_duration')) {
+                $options['invoice_duration'] = $invoiceDueAtDiff;
+            }
+        }
+
         // Create invoice on Xendit
         $response = \Xendit\Invoice::create($options);
 
