@@ -12,6 +12,11 @@ use Responsiv\Pay\Classes\GatewayBase;
 class Xendit extends GatewayBase
 {
     /**
+     * @var string driverFields defines form fields for this driver
+     */
+    public $driverFields = 'fields.yaml';
+
+    /**
      * {@inheritDoc}
      */
     public function __construct($model = null)
@@ -26,7 +31,7 @@ class Xendit extends GatewayBase
     /**
      * {@inheritDoc}
      */
-    public function gatewayDetails()
+    public function driverDetails()
     {
         return [
             'name'        => 'Xendit',
@@ -37,9 +42,8 @@ class Xendit extends GatewayBase
     /**
      * {@inheritDoc}
      */
-    public function defineFormFields()
+    public function initDriverHost($host)
     {
-        return 'fields.yaml';
     }
 
     /**
@@ -61,12 +65,6 @@ class Xendit extends GatewayBase
     public function getDropdownOptions()
     {
         return $this->createInvoiceStatusModel()->listStatuses();
-    }
-
-    /**
-     **/
-    public function getFormAction($host)
-    {
     }
 
     /**
