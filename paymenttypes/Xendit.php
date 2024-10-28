@@ -240,7 +240,7 @@ class Xendit extends GatewayBase
             throw new ApplicationException('Payment method not found');
         }
 
-        if ($paymentMethod->getGatewayClass() != 'Octobro\Xendit\PaymentTypes\Xendit') {
+        if ($paymentMethod->getDriverClass() != 'Octobro\Xendit\PaymentTypes\Xendit') {
             throw new ApplicationException('Invalid payment method');
         }
 
