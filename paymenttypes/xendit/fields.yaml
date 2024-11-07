@@ -123,15 +123,33 @@ fields:
         tab: Channels
         commentAbove: Filter payment channel to selected methods. If none are selected the payment gateway will show all payment channels.
         options:
+            # QR
+            QRIS: QRIS
+            # Credit Card
+            CREDIT_CARD: Credit Card
+            # VA
             BCA: VA BCA
+            BNI: VA BNI
+            BSI: VA BSI
             BRI: VA BRI
             MANDIRI: VA Mandiri
-            BNI: VA BNI
             PERMATA: VA Permata
-            BSI: VA BSI
+            SAHABAT_SAMPOERNA: VA Bank Sahabat Sampoerna
+            BNC: VA BNC
+            # Outlet
             ALFAMART: Alfamart
-            CREDIT_CARD: Credit Card
+            INDOMARET: Indomaret
+            # E-wallet
             OVO: OVO
-            SHOPEEPAY: ShopeePay
             DANA: DANA
+            SHOPEEPAY: ShopeePay
             LINKAJA: LinkAja
+            JENIUSPAY: JeniusPay
+            # Direct Debit
+            DD_BRI: Direct Debit BRI
+            DD_BCA_KLIKPAY: BCA KlikPay
+            # PayLater
+            KREDIVO: Kredivo
+            AKULAKU: Akulaku
+            UANGME: UangMe
+            ATOME: Atome
