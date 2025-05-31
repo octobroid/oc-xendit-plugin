@@ -1,4 +1,6 @@
-<?php namespace Octobro\Xendit\PaymentTypes;
+<?php
+
+namespace Octobro\Xendit\PaymentTypes;
 
 use Twig;
 use Input;
@@ -11,6 +13,17 @@ use Responsiv\Pay\Classes\GatewayBase;
 
 class Xendit extends GatewayBase
 {
+    /**
+     * {@inheritDoc}
+     */
+    public function gatewayDetails()
+    {
+        return [
+            'name'        => 'Xendit',
+            'description' => 'Xendit payment gateway.'
+        ];
+    }
+
     /**
      * @var string driverFields defines form fields for this driver
      */
@@ -31,20 +44,7 @@ class Xendit extends GatewayBase
     /**
      * {@inheritDoc}
      */
-    public function driverDetails()
-    {
-        return [
-            'name'        => 'Xendit',
-            'description' => 'Xendit payment gateway.'
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function initDriverHost($host)
-    {
-    }
+    public function initDriverHost($host) {}
 
     /**
      * {@inheritDoc}
@@ -130,7 +130,7 @@ class Xendit extends GatewayBase
         if (array_get($response, 'error_code')) {
             $invoice->logPaymentAttempt('error', 0, $options, $response, null);
             throw new ApplicationException(array_get($response, 'message') ?: 'Something went wrong.');
-        } 
+        }
 
         // Update the invoice
         $status = array_get($response, 'status') ?: array_get($response, 'payment_status');
@@ -160,7 +160,7 @@ class Xendit extends GatewayBase
             $this->checkInvoiceGates($invoice);
 
             $status = array_get($response, 'status') ?: array_get($response, 'payment_status');
-            
+
             $paymentMethod = $invoice->getPaymentMethod();
 
             switch ($status) {
@@ -252,7 +252,7 @@ class Xendit extends GatewayBase
     protected function isGenuineNotify($paymentMethod)
     {
         $callbackToken = Request::header('X-CALLBACK-TOKEN');
-        
+
         if (!$callbackToken && is_array(Input::get('callback_authentication_token'))) {
             $callbackToken = array_get(Input::get('callback_authentication_token'), 'token');
         }
